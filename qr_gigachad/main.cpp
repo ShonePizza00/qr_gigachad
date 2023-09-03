@@ -94,8 +94,8 @@ int main()
 				}
 				case 5:
 				{
-					std::string fPaths = "";
-					texts::printStrGetChoice(texts::getFPathsStr, fPaths);
+					/*std::string fPaths = "";
+					texts::printStrGetChoice(texts::getFPathsStr, fPaths);*/
 					std::cout << texts::filesSavedStr;
 					std::cout << reader->saveImages() << std::endl;
 					break;

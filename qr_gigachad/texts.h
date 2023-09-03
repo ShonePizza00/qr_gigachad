@@ -32,7 +32,7 @@ namespace texts
 	4: save last created image/images\n \
 	other: exit from the generator";
 
-	const std::string getFPathStr = "Enter source file's path";
+	const std::string getFPathStr = "Enter source's path";
 	const std::string getFPathsStr = "Enter source files' paths";
 	const std::string getFNameStr = "Enter file name";
 

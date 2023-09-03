@@ -13,7 +13,9 @@
 
 //finding all files from dir and subdirs
 void getFilesPaths(std::string& path, std::vector<std::string>& dest);
-std::string createTempDir(std::string& imageName, std::string& ext);
+std::string nameTempDir(std::string& imageName, std::string& ext);
+std::string nameTempDir(std::string& fileNameExt);
+std::string nameTempDir();
 
 class qrClass
 {

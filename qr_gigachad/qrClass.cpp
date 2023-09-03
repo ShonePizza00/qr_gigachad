@@ -20,13 +20,36 @@ void getFilesPaths(std::string& path, std::vector<std::string>& dest)
 	return;
 }
 
-std::string createTempDir(std::string& imageName, std::string& ext)
+std::string nameTempDir(std::string& imageName, std::string& ext)
 {
 	SHA256 sha;
 	time_t t1 = time(NULL);
 	sha.update(imageName + ext + (char)t1);
 	return SHA256::toString(sha.digest()).substr(0, 8);
 }
+
+std::string nameTempDir(std::string& fileNameExt)
+{
+	SHA256 sha;
+	time_t t1 = time(NULL);
+	sha.update(fileNameExt + (char)t1);
+	return SHA256::toString(sha.digest()).substr(0, 8);
+}
+
+std::string nameTempDir()
+{
+	SHA256 sha;
+	time_t t1 = time(NULL);
+	std::string init = "HASHSALT";
+	for (int i = 0; i < sizeof(time_t); ++i)
+	{
+		init += char(t1);
+		t1 >>= 8;
+	}
+	sha.update(init);
+	return SHA256::toString(sha.digest()).substr(0, 8);
+}
+
 
 qrClass::qrClass()
 {
@@ -182,6 +205,7 @@ size_t qrClass::openDir(std::string& path)
 		std::copy(filePath.begin() + path.length(), filePath.end(), std::back_inserter(configText));
 		configText.push_back('\0');
 	}
+	configText.push_back(1);
 	open(configText);
 	qrs.push_back(std::move(qr));
 	return qrs.size();
@@ -203,11 +227,13 @@ size_t qrClass::viewImage()
 
 size_t qrClass::saveImage(std::string& imageName, std::string& extension)
 {
+	if (!std::filesystem::exists("./pics/"))
+		std::filesystem::create_directory("./pics/");
 	if (isFile)
 		cv::imwrite(std::format("./pics/{}.{}", imageName, extension), qr);
 	else
 	{
-		std::string dirName = createTempDir(imageName, extension);
+		std::string dirName = nameTempDir(imageName, extension);
 		std::filesystem::create_directory(std::format("./pics/{}", dirName));
 		for (size_t i = 0; i < qrs.size(); ++i)
 		{
@@ -226,6 +252,14 @@ int qrClass::saveFromImage(std::string& path, std::string& fileNameExt)
 		throw std::exception("The queue is not empty");
 		return -1;
 	}
+
+	if (!std::filesystem::exists("./files/"))
+		std::filesystem::create_directory("./files/");
+	std::string dirName = nameTempDir(fileNameExt);
+	dirName = std::format("./files/{}", dirName);
+	if (!std::filesystem::exists(dirName))
+		std::filesystem::create_directory(dirName);
+
 	configTextFromImage.push(fileNameExt);
 	std::ifstream file(path);
 	if (file.is_open())
@@ -246,6 +280,14 @@ int qrClass::saveFromImage(cv::Mat& image, std::string& fileNameExt)
 		throw std::exception("The queue is not empty");
 		return -1;
 	}
+
+	if (!std::filesystem::exists("./files/"))
+		std::filesystem::create_directory("./files/");
+	std::string dirName = nameTempDir(fileNameExt);
+	dirName = std::format("./files/{}", dirName);
+	if (!std::filesystem::exists(dirName))
+		std::filesystem::create_directory(dirName);
+
 	configTextFromImage.push(fileNameExt);
 	return saveIntoFile(image);
 }
@@ -257,6 +299,14 @@ int qrClass::saveFromImage(std::string& fileNameExt)
 		throw std::exception("The queue is not empty");
 		return -1;
 	}
+
+	if (!std::filesystem::exists("./files/"))
+		std::filesystem::create_directory("./files/");
+	std::string dirName = nameTempDir(fileNameExt);
+	dirName = std::format("./files/{}", dirName);
+	if (!std::filesystem::exists(dirName))
+		std::filesystem::create_directory(dirName);
+
 	configTextFromImage.push(fileNameExt);
 	return saveIntoFile(qr);
 }
@@ -270,6 +320,14 @@ size_t qrClass::saveFromImages(std::string& path)
 		throw std::invalid_argument("The path points to a file, not a dir");
 		return -1;
 	}
+
+	if (!std::filesystem::exists("./files/"))
+		std::filesystem::create_directory("./files/");
+	std::string dirName = nameTempDir(path);
+	dirName = std::format("./files/{}", dirName);
+	if (!std::filesystem::exists(dirName))
+		std::filesystem::create_directory(dirName);
+
 	std::vector<std::string> filesPaths;
 	getFilesPaths(path, filesPaths);
 	cv::Mat t1 = cv::imread(filesPaths.back());
@@ -287,6 +345,13 @@ size_t qrClass::saveFromImages(std::string& path)
 
 size_t qrClass::saveFromImages(std::vector<cv::Mat>& images)
 {
+	if (!std::filesystem::exists("./files/"))
+		std::filesystem::create_directory("./files/");
+	std::string dirName = nameTempDir();
+	dirName = std::format("./files/{}", dirName);
+	if (!std::filesystem::exists(dirName))
+		std::filesystem::create_directory(dirName);
+
 	int ret = 0;
 	cv::Mat t1 = images.back();
 	putConfigImageToQueue(t1);
@@ -301,6 +366,13 @@ size_t qrClass::saveFromImages(std::vector<cv::Mat>& images)
 
 size_t qrClass::saveFromImages()
 {
+	if (!std::filesystem::exists("./files/"))
+		std::filesystem::create_directory("./files/");
+	std::string dirName = nameTempDir();
+	dirName = std::format("./files/{}", dirName);
+	if (!std::filesystem::exists(dirName))
+		std::filesystem::create_directory(dirName);
+
 	int ret = 0;
 	cv::Mat t1 = qrs.back();
 	putConfigImageToQueue(t1);
@@ -320,14 +392,27 @@ size_t qrClass::putConfigImageToQueue(cv::Mat& image)
 		throw std::exception("The queue is not empty");
 		return -1;
 	}
-	uchar* configImageData = image.data;
-	size_t configImageDataLen = image.total();
-	for (size_t i = 0; i < configImageDataLen; ++i)
+	/*uchar* configImageData = image.data;
+	size_t configImageDataLen = image.total();*/
+	std::string t1 = "";
+	char pointData = 0;
+	for (int y = 0; y < image.rows; ++y)
 	{
-		std::string t1 = "";
-		while (configImageData[i])
-			t1 += (char)configImageData[i++];
-		configTextFromImage.push(move(t1));
+		for (int x = 0; x < image.cols; ++x)
+		{
+			if (pointData = image.at<char>(y, x))
+				t1 += pointData;
+			else
+			{
+				if (pointData == 1)
+				{
+					y = image.rows;
+					break;
+				}
+				configTextFromImage.push(t1);
+				t1.clear();
+			}
+		}
 	}
 	return configTextFromImage.size();
 }
@@ -338,7 +423,28 @@ int qrClass::saveIntoFile(cv::Mat& image)
 	if (!oFile.is_open())
 		return 0;
 	configTextFromImage.pop();
-	oFile.write((char*)image.data, image.total());
+	int k = 0;
+	for (int x = 0; x < image.cols; ++x)
+		if (!image.at<char>(image.rows - 1, x))
+		{
+			k = x;
+			break;
+		}
+	char* data = new char[(image.rows - 2) * image.cols + k];
+
+	for (int y = 0; y < (image.rows - 2); ++y)
+	{
+		int t1 = y * (image.cols);
+		for (int x = 0; x < image.cols; ++x)
+			data[t1 + x] = image.at<char>(y, x);
+	}
+
+	int t1 = image.cols * (image.rows - 2);
+	for (int i = 0; i < k; ++i)
+		data[t1 + i] = image.at<char>(image.rows - 2, i);
+
+	oFile.write(data, (image.rows - 2) * image.cols + k);
 	oFile.close();
+	delete[] data;
 	return 1;
 }
