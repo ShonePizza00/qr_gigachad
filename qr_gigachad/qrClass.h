@@ -60,9 +60,6 @@ private:
 	int openFile(std::string& path);
 	int openFile(std::vector<char>& data);
 
-	/*
-	path[path.back()] must be \\ or /
-	*/
 	size_t openDir(std::string& path);
 	cv::Mat qr;
 	std::vector<cv::Mat> qrs;
