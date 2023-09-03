@@ -33,7 +33,7 @@ size_t qrReader::loadImages(std::string& path)
 	getFilesPaths(path, filesPaths);
 	std::vector<cv::Mat> images;
 	for (std::string& fPath : filesPaths)
-		images.push_back(std::move(cv::imread(fPath)));
+		images.push_back(std::move(cv::imread(fPath, cv::ImreadModes::IMREAD_GRAYSCALE)));
 	imageHolder = new qrClass(std::move(images), compress);
 	return filesPaths.size();
 }

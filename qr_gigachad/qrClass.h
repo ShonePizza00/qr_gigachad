@@ -55,7 +55,7 @@ public:
 	bool isFile = true;
 
 private:
-	inline int saveIntoFile(cv::Mat& image);
+	inline int saveIntoFile(cv::Mat& image, std::string& path);
 	inline size_t putConfigImageToQueue(cv::Mat& image);
 	int openFile(std::string& path);
 	int openFile(std::vector<char>& data);
