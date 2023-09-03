@@ -35,12 +35,10 @@ public:
 	*/
 	size_t saveImage(std::string& imageName, std::string& extension);
 
-	// v returns 0 if OK
+	// v returns num of saved files
 	int saveFromImage(std::string& path, std::string& fileNameExt);
 	int saveFromImage(cv::Mat& image, std::string& fileNameExt);
 	int saveFromImage(std::string& fileNameExt);
-
-	// v returns num of saved files
 	size_t saveFromImages(std::string& path);
 	size_t saveFromImages(std::vector<cv::Mat>& images);
 	size_t saveFromImages();
